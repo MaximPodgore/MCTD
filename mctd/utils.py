@@ -1,5 +1,6 @@
 import numpy as np
 import numbers
+from .turbo_mctd import Turbo1
 
 #base class for search node
 #has a position and a cost value: X and y
@@ -114,3 +115,49 @@ class RealVector(SearchNodeABS):
         except Exception as e:
             print("Fail to set boundary: "+str(e))  
         return array
+    
+#currently assuming that Treenodes store the neighborhood bounds
+class TreeNode:
+    def __init__(self,
+                 RealVectors = None,
+                 parent = None,
+                 children = None,
+                 min_for_gp=None,
+                 visits = 0,
+                 node_lvl = 0,
+                 lower_bound = None,
+                 upper_bound = None,                 
+                    **kwargs
+    ):
+        self.RealVectors = RealVectors
+        self.parent = parent
+        self.children = children
+        self.min_for_gp = min_for_gp
+        self.visits = visits
+        self.node_lvl = node_lvl
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+        self.set_parameters(**kwargs)
+        return
+    
+    def _local_opt(self):
+        """"Local Descent portion"""
+        step_size = 1 / np.sqrt(self.visits * self.node_lvl)
+
+        #if we have enough points to train a gp model
+        if self.RealVectors.length >= self.min_for_gp:
+            #train a gp model
+            #step_size *= correlation length
+            #generate multiple samples in hyperbox, pick best one, and its coordinates as the direction
+            #step = step_size * direction
+            #oracle = True
+            pass
+        else:
+            rand_dir = np.random.rand(self.RealVectors[0].X.shape[0])
+            rand_dir = self.lower_bound + rand_dir * (self.upper_bound - self.lower_bound)
+            step = step_size * rand_dir
+        
+        #call STP on the step
+
+        """Local Bayesian Optimization portion"""
+        return
