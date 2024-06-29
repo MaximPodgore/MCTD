@@ -1,6 +1,6 @@
 import numpy as np
 import numbers
-from .turbo_mctd import Turbo1
+from .turbo_1 import Turbo1
 
 #base class for search node
 #has a position and a cost value: X and y
@@ -119,6 +119,7 @@ class RealVector(SearchNodeABS):
 #currently assuming that Treenodes store the neighborhood bounds
 class TreeNode:
     def __init__(self,
+                 fn = None,
                  RealVectors = None,
                  parent = None,
                  children = None,
@@ -126,9 +127,12 @@ class TreeNode:
                  visits = 0,
                  node_lvl = 0,
                  lower_bound = None,
-                 upper_bound = None,                 
+                 upper_bound = None,
+                 N_init = None,     
+                        
                     **kwargs
-    ):
+    ): 
+        self.fn = fn
         self.RealVectors = RealVectors
         self.parent = parent
         self.children = children
@@ -137,6 +141,9 @@ class TreeNode:
         self.node_lvl = node_lvl
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
+        self.N_init = N_init
+        self.turboNode = None
+        self.turboNode_length = None
         self.set_parameters(**kwargs)
         return
     
@@ -159,5 +166,23 @@ class TreeNode:
         
         #call STP on the step
 
+        if
         """Local Bayesian Optimization portion"""
+        turboNode = Turbo1(
+            fn=self.fn,
+            lb=self.lower_bound,
+            ub=self.upper_bound,
+            n_init=self.N_init,
+            max_evals=self.N_init + 1,
+            batch_size=1,  
+            verbose=True,
+            use_ard=True,
+            max_cholesky_size=2000,
+            n_training_steps=50,
+            min_cuda=1024,
+            device="cpu",
+            dtype="float64"
+        )
+        turboNode.optimize()
+         turboNode.length;
         return

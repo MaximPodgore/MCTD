@@ -16,10 +16,10 @@ from .utils import SearchNodeABS, RealVector, TreeNode
 
 class MCTD:
     def __init__(self,
-                 fn,
                  dims = None,
                  lower_bound = None,
                  upper_bound = None,
+                 objective_function = None,
     ):
         self.dims = dims
         self.lower_bound = np.array(lower_bound)
