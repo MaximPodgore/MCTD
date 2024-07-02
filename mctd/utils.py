@@ -124,29 +124,51 @@ class TreeNode:
                  parent = None,
                  children = None,
                  min_for_gp=None,
-                 visits = 0,
                  node_lvl = 0,
                  lower_bound = None,
                  upper_bound = None,
-                 N_init = None,     
-                        
+                 N_init = None, 
+                 rcnt_improvement_weight= None,    
+                 exploration_weight = None,     
+                 j_improvements= None,                      
                     **kwargs
     ): 
         self.fn = fn
         self.RealVectors = RealVectors
         self.parent = parent
         self.children = children
-        self.min_for_gp = min_for_gp
-        self.visits = visits
         self.node_lvl = node_lvl
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
         self.N_init = N_init
+        self.rcnt_improvement_weight = rcnt_improvement_weight
+        self.exploration_weight = exploration_weight
+        self.j_improvements = j_improvements
+        self.visits = 1
         self.turboNode = None
         self.turboNode_length = None
+        self.uct = None
+        self.y_diff_stack= []
+        self.min_stack = []
         self.set_parameters(**kwargs)
         return
     
+    #adds to the y_diff_stack using min_stack
+    #call right after calling the objective function
+    def calculate_improvement(self):
+        self.y_diff_stack.append(self.min_stack[-2] - self.min_stack[-1])
+
+    def select_child(self):
+        copy_node = TreeNode(self)
+        while copy_node.children != []:
+            for child in copy_node.children:
+                j_sum = 0
+                for i in self.j_improvements:
+                    j_sum += child.y_diff_stack[self.y_diff_stack.length - i]  
+                child.uct = -np.min(child.RealVectors.y) + \
+                    self.rcnt_improvement_weight * j_sum + self.exploration_weight * np.sqrt(np.log(self.visits) / child.visits)
+                    
+
     def _local_opt(self):
         """"Local Descent portion"""
         step_size = 1 / np.sqrt(self.visits * self.node_lvl)
@@ -166,9 +188,10 @@ class TreeNode:
         
         #call STP on the step
 
-        if
+
         """Local Bayesian Optimization portion"""
-        turboNode = Turbo1(
+        if turboNode is None:
+            turboNode = Turbo1(
             fn=self.fn,
             lb=self.lower_bound,
             ub=self.upper_bound,
@@ -184,5 +207,6 @@ class TreeNode:
             dtype="float64"
         )
         turboNode.optimize()
-         turboNode.length;
+        #It really doesnt say what Turbo is actuwally used for
+        self.turboNode_length = turboNode.length;
         return
