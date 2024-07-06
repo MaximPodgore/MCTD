@@ -129,7 +129,8 @@ class TreeNode:
                  upper_bound = None,
                  N_init = None, 
                  rcnt_improvement_weight= None,    
-                 exploration_weight = None,     
+                 exploration_weight = None, 
+                 exploration_weight_two = None,    
                  j_improvements= None,                      
                     **kwargs
     ): 
@@ -143,6 +144,7 @@ class TreeNode:
         self.N_init = N_init
         self.rcnt_improvement_weight = rcnt_improvement_weight
         self.exploration_weight = exploration_weight
+        self.exploration_weight_two = exploration_weight_two
         self.j_improvements = j_improvements
         self.visits = 1
         self.turboNode = None
@@ -156,7 +158,10 @@ class TreeNode:
     #adds to the y_diff_stack using min_stack
     #call right after calling the objective function
     def calculate_improvement(self):
-        self.y_diff_stack.append(self.min_stack[-2] - self.min_stack[-1])
+        dif = self.min_stack[-2] - self.min_stack[-1]
+        if dif < 0:
+            dif = 0
+        self.y_diff_stack.append(dif)
 
     def select_child(self):
         copy_node = TreeNode(self)
@@ -167,7 +172,19 @@ class TreeNode:
                     j_sum += child.y_diff_stack[self.y_diff_stack.length - i]  
                 child.uct = -np.min(child.RealVectors.y) + \
                     self.rcnt_improvement_weight * j_sum + self.exploration_weight * np.sqrt(np.log(self.visits) / child.visits)
-                    
+            #make artiticial node
+            artifical_node = -sum(child.uct for child in copy_node.children) / len(copy_node.children) \
+                + self.exploration_weight_two * np.sqrt(self.visits)
+            if  max(child.uct for child in copy_node.children) < artifical_node:
+                return self.expand()
+            #confused on what to do here
+        # check EP equation
+
+    def expand(self):
+        #generate a new node
+        #add it to the children list
+        #return the new node
+        pass
 
     def _local_opt(self):
         """"Local Descent portion"""
