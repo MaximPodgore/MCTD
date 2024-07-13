@@ -165,6 +165,7 @@ class TreeNode:
 
     def select_child(self):
         copy_node = TreeNode(self)
+        max_node = 0
         while copy_node.children != []:
             for child in copy_node.children:
                 j_sum = 0
@@ -179,6 +180,8 @@ class TreeNode:
                 return self.expand()
             #confused on what to do here
         # check EP equation
+
+        if (np.min())
 
     def expand(self):
         #generate a new node
