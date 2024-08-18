@@ -1,6 +1,7 @@
 import numpy as np
 import numbers
 from .turbo_1 import Turbo1
+import copy
 
 #base class for search node
 #has a position and a cost value: X and y
@@ -128,9 +129,11 @@ class TreeNode:
                  lower_bound = None,
                  upper_bound = None,
                  N_init = None, 
-                 rcnt_improvement_weight= None,    
+                 rcnt_improvement_weight= None, 
+                 rcnt_improvement_weight_two = None,   
                  exploration_weight = None, 
                  exploration_weight_two = None,    
+                 exploration_weight_three = None,
                  j_improvements= None,                      
                     **kwargs
     ): 
@@ -138,13 +141,16 @@ class TreeNode:
         self.RealVectors = RealVectors
         self.parent = parent
         self.children = children
+        self.artificial_node = float('inf')
         self.node_lvl = node_lvl
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
         self.N_init = N_init
         self.rcnt_improvement_weight = rcnt_improvement_weight
+        self.rcnt_improvement_weight_two = rcnt_improvement_weight_two
         self.exploration_weight = exploration_weight
         self.exploration_weight_two = exploration_weight_two
+        self.exploration_weight_three = exploration_weight_three
         self.j_improvements = j_improvements
         self.visits = 1
         self.turboNode = None
@@ -163,30 +169,46 @@ class TreeNode:
             dif = 0
         self.y_diff_stack.append(dif)
 
+
+    #Still have questions about whether to deep copy or not
+    #why is the first while loop described this way??
     def select_child(self):
-        copy_node = TreeNode(self)
-        max_node = 0
+        copy_node = copy.deepcopy(self)
+        max_val = 0
         while copy_node.children != []:
             for child in copy_node.children:
                 j_sum = 0
-                for i in self.j_improvements:
-                    j_sum += child.y_diff_stack[self.y_diff_stack.length - i]  
+                for i in copy_node.j_improvements:
+                    j_sum += copy_node.y_diff_stack[copy_node.y_diff_stack.length - i]  
                 child.uct = -np.min(child.RealVectors.y) + \
-                    self.rcnt_improvement_weight * j_sum + self.exploration_weight * np.sqrt(np.log(self.visits) / child.visits)
+                    self.rcnt_improvement_weight * j_sum + self.exploration_weight * np.sqrt(np.log(copy_node.visits) / child.visits)
             #make artiticial node
-            artifical_node = -sum(child.uct for child in copy_node.children) / len(copy_node.children) \
-                + self.exploration_weight_two * np.sqrt(self.visits)
-            if  max(child.uct for child in copy_node.children) < artifical_node:
-                return self.expand()
-            #confused on what to do here
-        # check EP equation
+            copy_node.artifical_node = -sum(child.uct for child in copy_node.children) / len(self.children) \
+                + self.exploration_weight_two * np.sqrt(copy_node.visits)
+            max_val = max(child.uct for child in copy_node.children)
+            if max_val< copy_node.artifical_node:
+                return copy_node.expand()            
+            self.uct = max_val
 
-        if (np.min())
+        # always put best uct to root
+        #call ep on root to check if we should expand on it
 
+        j_sum = 0
+        for i in copy_node.j_improvements:
+            j_sum += (copy_node.y_diff_stack[copy_node.y_diff_stack.length - i])**(-i)
+        if (-np.min(copy_node.children.uct) + self.rcnt_improvement_weight_two* \
+            j_sum) < self.exploration_weight_three * np.sqrt(np.log(copy_node.visits)):
+            copy_node.expand()
+        return copy_node
+    
     def expand(self):
-        #generate a new node
-        #add it to the children list
-        #return the new node
+        if self.children == []:
+            child_zero = copy.deepcopy(self)
+            self.children.append(child_zero)
+            child_zero.parent= self
+        lv = self.node_lvl
+        d = np.e ** (-lv) 
+        #need to figure out how to actually sample   
         pass
 
     def _local_opt(self):
